@@ -27,12 +27,14 @@ I'm AI-Rodriguez — researcher in media theory, image and liberation politics b
 | **Phase 2** | ✅ Complete | Multi-coin dashboard — BTC, ETH, SOL monitored simultaneously |
 | **Phase 3** | ✅ Complete | Moving averages (MA7/MA21), crossover BUY/SELL/HOLD signals |
 | **Phase 4** | ✅ Complete | Backtesting against 30 days of historical hourly data with fee simulation |
-| **Phase 4.5** | 🔜 Next | Longer timeframes (4h, daily) to reduce trade frequency and fee impact |
+| **Phase 4.5** | ✅ Complete | Multi-strategy backtesting: MA7/21, MA20/50, MA50/200 across hourly, 4-hour, and daily candles |
 | **Phase 5** | 📋 Planned | Paper trading — simulate real trades with virtual money |
 | **Phase 6** | 📋 Planned | Live trading with small amounts (EUR 50–100) |
 | **Phase 7** | 🔭 Horizon | AI-powered signals — sentiment analysis from news headlines |
 
-## Key Insight from Backtesting
+## Key Findings
+
+### Phase 4 — The Fee Problem
 
 The MA7/MA21 crossover strategy **beat buy & hold** during a bear market (all three coins were down 21–28%) by limiting losses. But **trading fees were the dominant factor** — at Kraken's 0.40% taker rate, 16–20 round trips consumed 12–15% of capital, turning a damage-limiting strategy into a net loser.
 
@@ -46,6 +48,32 @@ The MA7/MA21 crossover strategy **beat buy & hold** during a bear market (all th
 
 *Backtest period: Jan 31 – Mar 2, 2026 · 721 hourly candles per coin · Starting capital: €300 per coin*
 
+### Phase 4.5 — The Window Size Hypothesis
+
+If fees kill profitability through trade frequency, can wider MA windows reduce the number of trades enough to make the strategy viable? We tested three strategies across three timeframes — 27 backtests total.
+
+**The golden cross (MA50/MA200) mostly failed.** It reduced trades to 1–4 per backtest and fees to €2–5, but the signals were so delayed that by the time it said "buy," the trend was already mature, and by the time it said "sell," the crash was already underway. Too smooth, too slow.
+
+**The sweet spot was the middle: MA20/MA50 on daily candles.** One configuration — ETH daily MA20/MA50 — returned **+27.94%** over two years with just 5 round trips and €15.93 in fees. It caught two sustained rallies (+59.13% and +28.78%) and avoided the worst of the drawdowns.
+
+| Coin | Time | Strategy | Trades | Fees | Return | B&H | Diff |
+|------|------|----------|--------|------|--------|-----|------|
+| BTC | daily | MA50/MA200 | 2 | €5.19 | +4.38% | +0.10% | +4.29% |
+| ETH | daily | MA20/MA50 | 5 | €15.93 | **+27.94%** | -45.83% | **+73.77%** |
+| SOL | 4-hour | MA20/MA50 | 6 | €12.88 | -11.15% | -45.18% | +34.03% |
+
+*Selected results from 27 backtests. Full comparison in backtest.py output.*
+
+### What We Learned
+
+**Self-similarity in markets.** When we first compared timeframes, the trade count was suspiciously similar — 18, 19, 20 trades regardless of whether the candles were hourly or daily. This isn't the exchange gaming the system. It's a mathematical property: the density of trend reversals stays roughly constant across timescales. Financial markets exhibit fractal-like behavior — the pattern looks similar whether you zoom in or zoom out.
+
+**Window size matters more than timeframe.** The original hypothesis was that longer candles (4-hour, daily) would fix the fee problem by producing fewer signals. But 720 candles produce roughly the same number of MA crossovers regardless of interval. What actually reduced trade count was widening the MA windows — MA20/MA50 produced 5–9 trades where MA7/MA21 produced 16–20.
+
+**Same strategy, different asset, wildly different results.** ETH daily MA20/MA50 returned +27.94%. SOL daily MA20/MA50 lost 57.47%. Same logic, same timeframe, opposite outcomes. This tells us something fundamental: price-based strategies like MA crossover treat the market as a closed system — just numbers moving. But the market is an open system, driven by external forces: news, sentiment, regulation, adoption. The strategy can only react to price movements. It has no idea *why* the price moved. This is the argument for eventually adding sentiment analysis.
+
+**Data mining bias is real.** We tested 27 combinations and found one clear winner. That could be genuine signal, or it could be statistical luck — test enough combinations and something will look great by chance. The broader structural insight (medium windows on daily candles outperform fast strategies on short timeframes) is more trustworthy than any single result.
+
 ## Tech Stack
 
 - **Language:** Python 3.13
@@ -58,13 +86,13 @@ The MA7/MA21 crossover strategy **beat buy & hold** during a bear market (all th
 ```
 financial-bonsai/
 ├── bonsai.py              # Live monitoring bot (v5) — MA7/MA21 crossover signals
-├── download_history.py    # Downloads 720 hourly OHLC candles from Kraken
-├── backtest.py            # MA7/MA21 strategy backtester with fee simulation
+├── download_history.py    # Downloads OHLC candles from Kraken (hourly, 4-hour, daily)
+├── backtest.py            # Multi-strategy backtester — MA7/21, MA20/50, MA50/200
 ├── requirements.txt       # Python dependencies
 ├── bonsai_log.csv         # Live data log (generated at runtime)
-├── history_BTC_60m.csv    # Historical BTC/EUR candle data (generated)
-├── history_ETH_60m.csv    # Historical ETH/EUR candle data (generated)
-├── history_SOL_60m.csv    # Historical SOL/EUR candle data (generated)
+├── history_*_60m.csv      # Hourly candle data (generated)
+├── history_*_240m.csv     # 4-hour candle data (generated)
+├── history_*_1440m.csv    # Daily candle data (generated)
 └── docs/
     └── session-summaries/ # PDF snapshots of each development session
 ```
@@ -98,10 +126,10 @@ pip install -r requirements.txt
 # Run the live price monitor
 python3 bonsai.py
 
-# Download historical data (30 days of hourly candles)
+# Download historical data (hourly, 4-hour, and daily candles)
 python3 download_history.py
 
-# Run the backtester
+# Run the multi-strategy backtester
 python3 backtest.py
 ```
 
@@ -116,6 +144,8 @@ Through building this project, I've gone from zero to understanding:
 - **Backtesting** — testing strategies against historical data before risking real money
 - **Trading fees** — maker vs taker, and how frequency amplifies fee impact
 - **Signal noise & whipsaw** — why short timeframes generate unreliable signals
+- **Self-similarity** — financial markets exhibit fractal-like behavior across timescales
+- **Data mining bias** — testing many combinations will produce winners by chance; structural insights matter more than individual results
 - **Financial fundamentals** — DCA, compounding, ETFs, portfolio allocation
 
 ## Disclaimer
