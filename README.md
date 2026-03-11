@@ -28,7 +28,7 @@ I'm AI-Rodriguez — researcher in media theory, image and liberation politics b
 | **Phase 3** | ✅ Complete | Moving averages (MA7/MA21), crossover BUY/SELL/HOLD signals |
 | **Phase 4** | ✅ Complete | Backtesting against 30 days of historical hourly data with fee simulation |
 | **Phase 4.5** | ✅ Complete | Multi-strategy backtesting: MA7/21, MA20/50, MA50/200 across hourly, 4-hour, and daily candles |
-| **Phase 5** | 📋 Planned | Paper trading — simulate real trades with virtual money |
+| **Phase 5** | ⏳ Active | Paper trading — MA20/MA50 daily strategy with virtual €300/coin |
 | **Phase 6** | 📋 Planned | Live trading with small amounts (EUR 50–100) |
 | **Phase 7** | 🔭 Horizon | AI-powered signals — sentiment analysis from news headlines |
 
@@ -88,8 +88,10 @@ financial-bonsai/
 ├── bonsai.py              # Live monitoring bot (v5) — MA7/MA21 crossover signals
 ├── download_history.py    # Downloads OHLC candles from Kraken (hourly, 4-hour, daily)
 ├── backtest.py            # Multi-strategy backtester — MA7/21, MA20/50, MA50/200
+├── paper_trader.py        # Paper trader — MA20/MA50 daily strategy, virtual portfolio
 ├── requirements.txt       # Python dependencies
 ├── bonsai_log.csv         # Live data log (generated at runtime)
+├── paper_state.json       # Paper trader state file (generated at runtime)
 ├── history_*_60m.csv      # Hourly candle data (generated)
 ├── history_*_240m.csv     # 4-hour candle data (generated)
 ├── history_*_1440m.csv    # Daily candle data (generated)
@@ -131,6 +133,9 @@ python3 download_history.py
 
 # Run the multi-strategy backtester
 python3 backtest.py
+
+# Run the paper trader (once per day)
+python3 paper_trader.py
 ```
 
 Press `Ctrl+C` to stop the live monitor.
@@ -147,6 +152,8 @@ Through building this project, I've gone from zero to understanding:
 - **Self-similarity** — financial markets exhibit fractal-like behavior across timescales
 - **Data mining bias** — testing many combinations will produce winners by chance; structural insights matter more than individual results
 - **Financial fundamentals** — DCA, compounding, ETFs, portfolio allocation
+- **Paper trading** — forward-testing a strategy on live, unseen data with virtual money to validate backtest results
+- **State persistence** — using JSON files to maintain program state across separate executions
 
 ## Disclaimer
 
